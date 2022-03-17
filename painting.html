@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>Painting</title>
+		<style>			
+			h1,h2,h3,h4,h5,h6
+			{
+				text-align:center;
+			}
+			div#body
+			{
+				background-color:#ffa0ff;
+				border:2px solid;
+				border-radius:25px;
+				-moz-border-radius:25px;
+				box-shadow: 10px 10px 5px #888888;
+			}
+			code, textarea, button
+			{
+				font-size:150%;
+				font-weight:bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="title">
+			<h1>
+				Painting (Write your own R, G, B functions and I'll display the result!)
+			</h1>
+		</div>
+		<script type="text/javascript">
+			var canvas, context, width, height
+			function Start() {
+				width = document.getElementById("Wid").value
+				height = document.getElementById("Hei").value
+				width = width > 1024 ? 1024 : width
+				height = height > 1024 ? 1024 : height
+				canvas.width = width
+				canvas.height = height
+				context = canvas.getContext("2d")
+				document.getElementById('Wrapper').style.width = String(width) + 'px';
+				try {
+					eval("var R = function(i, j) {" + document.getElementById("txt_r").value + "}")
+					eval("var G = function(i, j) {" + document.getElementById("txt_g").value + "}")
+					eval("var B = function(i, j) {" + document.getElementById("txt_b").value + "}")
+					var img = context.createImageData(width, height)
+					for (var i = 0; i < width; i++)
+						for (var j = 0; j < height; j++) {
+							var p = 4 * (j * width + i)
+							img.data[p] = R(i, j) & 255
+							img.data[p + 1] = G(i, j) & 255
+							img.data[p + 2] = B(i, j) & 255
+							img.data[p + 3] = 255
+						}
+					context.putImageData(img, 0, 0)
+				} catch (ex) {
+					alert(ex.message)
+				}
+			}
+		</script>
+		<div id="body">
+			<div style="margin:0px auto; width:1024px">
+				<table border="0px" style="margin:0px auto">
+					<tr>
+						<td>
+							Width (Max 1024):<input type="number" required value="512" id="Wid" />
+						</td><td>
+							Height (Max 1024):<input type="number" required value="512" id="Hei" />
+						</td>
+					</tr><tr>
+						<td>
+							<code>function R(i, j) {</code><br/>
+							<textarea id="txt_r" spellcheck="false" rows="4" cols="30" required>return i</textarea><br/>
+							<code>}</code><br/>
+						</td><td>
+							<code>function G(i, j) {</code><br/>
+							<textarea id="txt_g" spellcheck="false" rows="4" cols="30" required>return j</textarea><br/>
+							<code>}</code><br/>
+						</td>
+					</tr><tr>
+						<td>
+							<code>function B(i, j) {</code><br/>
+							<textarea id="txt_b" spellcheck="false" rows="4" cols="30" required>return i + j</textarea><br/>
+							<code>}</code><br/>
+						</td><td>
+							<button style="display:block; margin:0px auto" onclick="Start()">Start!</button>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div style="margin:0px auto; width:512px" id="Wrapper">
+				<canvas id="mainCanvas" width="512" height="512" style="border:1px solid" />
+			</div>
+		</div>
+		<script type="text/javascript">
+			window.onload = function () {
+				canvas = document.getElementById("mainCanvas")
+				Start()
+			}
+		</script>
+	</body>
+</html>

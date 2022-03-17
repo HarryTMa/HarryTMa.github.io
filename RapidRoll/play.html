@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="icon" href="icon.ico" type="image/x-icon" />
+        <link rel="shortcut icon" href="icon.ico" type="image/x-icon" />
+        <title>彩球滑梯</title>
+    </head>
+    <body>
+        <div id="title">
+            <h1>
+                <span class="Title1">彩</span>
+                <span class="Title2">球</span>
+                <span class="Title1">滑</span>
+                <span class="Title2">梯</span>
+            </h1>
+        </div>
+        <script type="text/javascript">
+            var canvas, context
+            function fillTriangle(x1, y1, x2, y2, x3, y3) {
+                context.beginPath()
+                context.moveTo(x1, y1)
+                context.lineTo(x2, y2)
+                context.lineTo(x3, y3)
+                context.closePath()
+                context.fill()
+                context.stroke()
+            }
+            function line(x1, y1, x2, y2) {
+                context.beginPath()
+                context.moveTo(x1, y1)
+                context.lineTo(x2, y2)
+                context.closePath()
+                context.stroke()
+            }
+            function fillEllipse(x, y, rx, ry) {
+                context.beginPath()
+                context.arc(x, y, rx, ry, 0, 2 * Math.PI, true)
+                context.closePath()
+                context.fill()
+                context.stroke()
+            }
+            function fillRectWithStroke(left, top, w, h) {
+                context.beginPath()
+                context.moveTo(left, top)
+                context.lineTo(left + w, top)
+                context.lineTo(left + w, top + h)
+                context.lineTo(left, top + h)
+                context.closePath()
+                context.fill()
+                context.stroke()
+            }
+            var mousing, mx, my
+           
+            const fps = 40
+            var now
+            var then
+            var interval = 1000 / fps
+            var delta;
+            window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+//tick();
+            var delaying = 0
+            var callback
+            function delay(milsec) {
+                delaying = parseInt(milsec / interval)
+            }
+        </script>
+        <script type="text/javascript">
+            var scale = 0.7
+            const COLOR_NAIL = "#D2D2D2"
+            const COLOR_BG = "#96DCFF"
+            const COLOR_PAD = "#5A82FF"
+            const COLOR_BALL = "#FF2850"
+            const white = "#FFFFFF"
+            const black = "#000000"
+            const gray = "#7F7F7F"
+            const some_light_yellow = "#FFE9BF"
+            const some_dark_yellow = "#FFF046"
+            const width = 480
+            const height = 640
+            const VMOVE_ORIGIN = 1.4 * 60 / fps
+            const VPADAPPEAR_ORIGIN = VMOVE_ORIGIN / 80 //* 60 / fps
+            const VBALL_ORIGIN = 2.0 * 60 / fps
+            var ABALLV_ORIGIN = 0.05 * (60 / fps) * (60 / fps)
+            const NAILRATE_ORIGIN = 35.0
+            var vMove, vPadAppear, Move, padAppear, vBall, vBallv, aBallv, score, nailRate, nailRateActual // floats
+            const RADIUS_HEART = 6
+            const RADIUS_BALL = 10
+            var inGame = false
+            var key_press
+            var highScore
+            function BALL() {
+                this.x = 0
+                this.y = 0
+            }
+            var ball = new BALL()
+            var hearts = -1
+            var deadTime = 0
+            const WIDTH_PAD = 100
+            const HEIGHT_PAD = 20
+            var pads = []
+            function random(n) {
+                return parseInt(Math.random() * n)
+            }
+            function PAD() {
+                this.left = random(440 - WIDTH_PAD) + 20
+                this.top = random(21) + height
+                this.isNail = !parseInt(random(101) / parseInt(nailRateActual))
+                this.hasHeart = false
+                if (this.isNail) {
+                    nailRateActual *= 0.8
+                } else {
+                    this.hasHeart = !random(10)
+                    nailRateActual = nailRate
+                }
+                pads.push(this)
+            }
+            function checkPads() {
+                while (pads[0].top < 60) {
+                    pads.shift()
+                }
+            }
+            function drawScore(_score) {
+                context.fillStyle = COLOR_PAD
+                context.fillRect(270 * scale, 15 * scale, 200 * scale, 35 * scale)
+                context.font = parseInt(27 * scale) + "px Arial"
+                context.fillStyle = white
+                context.fillText((_score % 10).toString(), 450 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 425 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 400 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 375 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 350 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 325 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 300 * scale, 40 * scale)
+                _score = parseInt(_score / 10)
+                context.fillText((_score % 10).toString(), 275 * scale, 40 * scale)
+            }
+            function drawHeart(n) {
+                if (n > 6) {
+                    n = 6
+                }
+                if (n < 0) {
+                    n = 0
+                }
+                context.strokeStyle = black
+                context.fillStyle = COLOR_BALL
+                for (var i = 0; i < n; i ++) {
+                    fillEllipse((26 + 35 * i) * scale, 32 * scale, 16 * scale, 16 * scale)
+                }
+                context.fillStyle = gray
+                for (var i = n; i < 6; i ++) {
+                    fillEllipse((26 + 35 * i) * scale, 32 * scale, 16 * scale, 16 * scale)
+                }
+            }
+            function drawTopNail() {
+                context.strokeStyle = black
+                context.fillStyle = COLOR_NAIL
+                for (var i = 0; i < 11; i ++) {
+                    fillTriangle((20 + 40 * i) * scale, 60 * scale, (60 + 40 * i) * scale, 60 * scale, (40 + 40 * i) * scale, 100 * scale)
+                }
+                line(0, 60 * scale, width * scale, 60 * scale)
+            }
+            function drawNail(left, top) {
+                context.fillStyle = COLOR_NAIL
+                context.strokeStyle = black
+                for (var i = 0; i < 5; i ++) {
+                    fillTriangle((left + 10 + 20 * i) * scale, top * scale, (left + 20 * i) * scale, (top + HEIGHT_PAD) * scale, (left + 20 + 20 * i) * scale, (top + HEIGHT_PAD) * scale)
+                }
+            }
+            function msg(str) {
+                context.fillStyle = some_light_yellow
+                context.fillRect(125 * scale, 300 * scale, 225 * scale, 75 * scale)
+                context.fillStyle = "#343546"
+                context.fillRect(127 * scale, 302 * scale, 221 * scale, 71 * scale)
+                context.fillStyle = some_light_yellow
+                context.fillRect(130 * scale, 305 * scale, 215 * scale, 65 * scale)
+                context.fillStyle = COLOR_PAD
+                context.font = 60 * scale + "px 宋体"
+                context.fillText(str, 143 * scale, 357 * scale)
+            }
+            function showMenu() {
+                inGame = false
+                context.fillStyle = COLOR_BG
+                context.fillRect(0, 0, width * scale, 800 * scale)
+                context.font = 120 * scale + "px 宋体"
+                context.fillStyle = COLOR_BALL
+                context.fillText("彩", 0, 105 * scale)
+                context.fillText("滑", 240 * scale, 105 * scale)
+                context.fillStyle = black
+                context.fillText("球", 120 * scale, 105 * scale)
+                context.fillText("梯", 360 * scale, 105 * scale)
+                context.fillStyle = COLOR_PAD
+                context.fillRect(100 * scale, 220 * scale, 280 * scale, 120 * scale)
+                context.fillRect(100 * scale, 420 * scale, 280 * scale, 120 * scale)
+                context.fillStyle = white
+                context.fillText("游戏", 120 * scale, 325 * scale)
+                context.fillText("退出", 120 * scale, 525 * scale)
+                context.fillStyle = black
+                context.font = 30 * scale +"px 宋体"
+                context.fillText("最高分：" + highScore, 100 * scale, 590 * scale)
+            }
+            function refresh() {
+                if (delaying) {
+                    delaying --
+                    if (!delaying) {
+                        callback()
+                    }
+                    return true
+                }
+                if (!inGame) {
+                    if (mousing) {
+                        if (mx >= 100 && mx <= 380 && my >= 220 && my <= 340) {
+                            if (hearts < 0) {
+                                initGame()
+                            } else {
+                                showGame()
+                            }
+                            return true
+                        }
+                        if (mx >= 100 && mx <= 380 && my >= 420 && my <= 540) {
+                            return false
+                        }
+                    }
+                    showMenu()
+                    return true
+                }
+                if (mousing) {
+                    if (mx >= 225 && mx <= 265 && my >= 15 && my <= 50) {
+                        showMenu()
+                    } else if (mx >= 90 && mx <= 190 && my >= 670 && my <= 770) {
+                        key_press = 1
+                    } else if (mx >= 290 && mx <= 390 && my >= 670 && my <= 770) {
+                        key_press = -1
+                    } else {
+                      key_press = 0
+                    }
+                }
+                if (inGame && hearts < 0) {
+                    msg("你输了")
+                    if (score > highScore) {
+                        highScore = parseInt(score)
+                    }
+                    delay(5000)
+                    callback = showMenu
+                    return true
+                }
+                context.fillStyle = COLOR_BG
+                context.fillRect(21 * scale, 60 * scale, 439 * scale, 580 * scale)
+                if (inGame && deadTime == 1) {
+                    var findPad = false
+                    for (var i = pads.length - 1; i >= 0; i --) {
+                        if (pads[i].top > RADIUS_BALL + 120 && ! pads[i].isNail) {
+                            ball.x = pads[i].left + 50
+                            ball.y = pads[i].top - RADIUS_BALL
+                            findPad = true
+                            break
+                        }
+                    }
+                    if (findPad) {
+                        deadTime = 0
+                    } else {
+                        deadTime = fps
+                    }
+                    key_press = 0
+                }
+                if (score > 3500) {
+                    if (vMove < VMOVE_ORIGIN * 4) {
+                        vMove += VMOVE_ORIGIN / 1000
+                    }
+                    if (vPadAppear < VPADAPPEAR_ORIGIN * 4) {
+                        vPadAppear += VPADAPPEAR_ORIGIN / 1000
+                    }
+                } else if (score > 2500) {
+                    if (vMove < VMOVE_ORIGIN * 3) {
+                        vMove += VMOVE_ORIGIN / 1000
+                    }
+                    if (vPadAppear < VPADAPPEAR_ORIGIN * 3) {
+                        vPadAppear += VPADAPPEAR_ORIGIN / 1000
+                    }
+                    if (vBall < VBALL_ORIGIN * 1.6) {
+                        vBall += VBALL_ORIGIN / 1000
+                    }
+                } else if (score > 1500) {
+                    if (vMove < VMOVE_ORIGIN * 2.4) {
+                        vMove += VMOVE_ORIGIN / 1000
+                    }
+                    if (vPadAppear < VPADAPPEAR_ORIGIN * 2.4) {
+                        vPadAppear += VPADAPPEAR_ORIGIN / 1000
+                    }
+                    if (nailRate <= NAILRATE_ORIGIN * 1.4) {
+                        nailRate += 0.05
+                    }
+                    if (vBall < VBALL_ORIGIN * 1.4) {
+                        vBall += VBALL_ORIGIN / 1000
+                    }
+                } else if (score > 750) {
+                    if (vMove < VMOVE_ORIGIN * 1.7) {
+                        vMove += VMOVE_ORIGIN / 1000
+                    }
+                    if (vPadAppear < VPADAPPEAR_ORIGIN * 1.7) {
+                        vPadAppear += VPADAPPEAR_ORIGIN / 1000
+                    }
+                    if (nailRate <= NAILRATE_ORIGIN * 1.2) {
+                        nailRate += 0.05
+                    }
+                    if (vBall < VBALL_ORIGIN * 1.2) {
+                        vBall += VBALL_ORIGIN / 1000
+                    }
+                }
+                Move += vMove
+                padAppear += vPadAppear
+                var aMove = parseInt(Move)
+                var aAppear = parseInt(padAppear)
+                Move -= aMove
+                if (padAppear >= 1) {
+                    new PAD()
+                }
+                padAppear -= aAppear
+                var ballOnPad = -1
+                for (var i = 0; i < pads.length; i ++) {
+                    var pad = pads[i]
+                    if (pad.top > 60 + RADIUS_HEART + 6 || (pad.top > 60 && !pad.hasHeart)) {
+                        if (!pad.isNail) {
+                            context.fillStyle = COLOR_PAD
+                            context.fillRect(pad.left * scale, pad.top * scale, WIDTH_PAD * scale, HEIGHT_PAD * scale)
+                            if (pad.hasHeart) {
+                                context.fillStyle = COLOR_BALL
+                                fillEllipse((pad.left + WIDTH_PAD / 2) * scale, (pad.top - RADIUS_HEART) * scale, RADIUS_HEART * scale, RADIUS_HEART * scale)
+                            }
+                        } else {
+                            drawNail(pad.left, pad.top)
+                        }
+                        if (ball.x + RADIUS_BALL > pad.left && ball.x < RADIUS_BALL + WIDTH_PAD + pad.left && ball.y + RADIUS_BALL + 1 + vBallv + aMove >= pad.top && ball.y + RADIUS_BALL - 1 <= pad.top) {
+                            ballOnPad = i
+                            ball.y = pad.top - RADIUS_BALL
+                        }
+                    }
+                    pad.top -= aMove
+                }
+                if (deadTime) {
+                    deadTime --
+                } else {
+                    if (key_press == 1 && ball.x > 25 + RADIUS_BALL) {
+                        ball.x -= vBall
+                    } else if (key_press == -1 && ball.x < 455 - RADIUS_BALL) {
+                        ball.x += vBall
+                    } else {
+                        key_press = 0
+                    }
+                }
+                if (ballOnPad < 0) {
+                    ball.y += vBallv
+                    if (!deadTime) score += vBallv / 5
+                    vBallv += aBallv
+                    if (ball.y >= height + 3 * RADIUS_BALL + 1 && !deadTime) {
+                        hearts --
+                        deadTime = fps
+                    }
+                } else {
+                    vBallv = 0
+                    ball.y -= vMove
+                    var pad = pads[ballOnPad]
+                    if (pad.isNail && !deadTime) {
+                        hearts --
+                        deadTime = fps
+                    }
+                    if (ball.y <= RADIUS_BALL + 100 && !deadTime) {
+                        hearts --
+                        deadTime = fps
+                    }
+                    if (pad.hasHeart && ball.x > pad.left + WIDTH_PAD / 2 - RADIUS_BALL - RADIUS_HEART && ball.x < pad.left + WIDTH_PAD / 2 + RADIUS_BALL + RADIUS_HEART) {
+                        pad.hasHeart = false
+                        if (hearts < 6) {
+                            hearts ++
+                        }
+                    }
+                }
+                if (ball.x + RADIUS_BALL > 458) {
+                    ball.x = 458 - RADIUS_BALL
+                }
+                if (ball.x < 22 + RADIUS_BALL) {
+                    ball.x = 22 + RADIUS_BALL
+                }
+                if (ball.y - RADIUS_BALL > 62) {
+                    context.strokeStyle = black
+                    if (!deadTime) {
+                        context.fillStyle = COLOR_BALL
+                    } else {
+                        context.fillStyle = "rgba(0, 0, 0, 0)"
+                    }
+                    fillEllipse(ball.x * scale, ball.y * scale, RADIUS_BALL * scale, RADIUS_BALL * scale)
+                }
+                drawHeart(hearts)
+                drawScore(parseInt(score))
+                drawTopNail()
+                checkPads()
+                context.fillStyle = COLOR_BG
+                context.fillRect(0, 640 * scale, 480 * scale, 160 * scale)
+                context.fillStyle = COLOR_NAIL
+                context.strokeStyle = black
+                fillRectWithStroke(90 * scale, 670 * scale, 100 * scale, 100 * scale)
+                fillRectWithStroke(290 * scale, 670 * scale, 100 * scale, 100 * scale)
+                fillTriangle(110 * scale, 720 * scale, 170 * scale, 690 * scale, 170 * scale, 750 * scale)
+                fillTriangle(370 * scale, 720 * scale, 310 * scale, 690 * scale, 310 * scale, 750 * scale)
+                return true
+            }
+            function showGame() {
+                inGame = true
+                context.fillStyle = COLOR_BG
+                context.fillRect(0, 0, 480 * scale, 800 * scale)
+                drawScore(0)
+                context.fillStyle = COLOR_PAD
+                context.fillRect(10 * scale, 15 * scale, 210 * scale, 35 * scale)
+                context.fillStyle = COLOR_BALL
+                context.fillRect(225 * scale, 15 * scale, 40 * scale, 35 * scale)
+                context.font = 14 * scale + "px Arial"
+                context.fillStyle = COLOR_NAIL
+                context.fillText("MENU", 225 * scale, 38 * scale)
+                context.fillStyle = some_dark_yellow
+                context.strokeStyle = black
+                fillRectWithStroke(0, 60 * scale, 20 * scale, 580 * scale)
+                fillRectWithStroke(460 * scale, 60 * scale, 20 * scale, 580 * scale)
+            }
+            function initGame() {
+                pads = []
+                deadTime = 0
+                vMove = VMOVE_ORIGIN
+                vPadAppear = VPADAPPEAR_ORIGIN
+                Move = 0
+                padAppear = 0
+                vBall = VBALL_ORIGIN
+                vBallv = 0
+                aBallv = ABALLV_ORIGIN
+                score = 0
+                nailRateActual = nailRate = NAILRATE_ORIGIN
+                var pad
+                for (var i = 0; i < 6; i ++) {
+                    pad = new PAD()
+                    pad.top = 100 * (i + 1) + random(35)
+                }
+                pad.isNail = false
+                pad.hasHeart = false
+                ball.x = pad.left + 50
+                ball.y = pad.top - RADIUS_BALL
+                hearts = 2
+                showGame()
+                refresh()
+                msg("预备")
+                delay(2000)
+                callback = function () {}
+            }
+        </script>
+        <div id="body">
+            <div style="margin:40px auto; width:480px">
+                调整比例：<input type="range" min="1" max="100" value="30" id="range" oninput="range_change()" /><br>
+                <canvas id="mainCanvas" width="480" height="800" style="border:1px solid">
+                </canvas>
+            </div>
+        </div>
+        <script type="text/javascript">
+            function range_change() {
+                scale = document.getElementById("range").value / 30
+                canvas.width = width * scale
+                canvas.height = height * 1.25 * scale
+            }
+            function tick() {
+                if (window.requestAnimationFrame) {
+                    requestAnimationFrame(tick)
+                    now = Date.now()
+                    delta = now - then
+                    if (delta > interval) {
+// 这里不能简单then=now，否则还会出现上边简单做法的细微时间差问题。例如fps=10，每帧100ms，而现在每16ms（60fps）执行一次draw。16*7=112>100，需要7次才实际绘制一次。这个情况下，实际10帧需要112*10=1120ms>1000ms才绘制完成。
+                        then = now - (delta % interval)
+                        if (!refresh()) {
+                            window.opener = null
+                            window.close()
+                        }
+                    }
+                } else {
+                    setTimeout(tick, interval)
+                    if (!refresh()) {
+                        window.opener = null
+                        window.close()
+                    }
+                }
+            }
+            window.onload = function () {
+                canvas = document.getElementById("mainCanvas")
+                canvas.width *= scale
+                canvas.height *= scale
+                context = canvas.getContext("2d")
+                canvas.onmousedown = function(e) {
+                    mousing = true
+                    mx = (e.clientX - canvas.getBoundingClientRect().left) / scale
+                    my = (e.clientY - canvas.getBoundingClientRect().top) / scale
+                }
+                canvas.onmouseup = function() {
+                    mousing = false
+                    key_press = false
+                }
+                canvas.addEventListener('touchstart', function (e) {
+                    mousing = true
+                    e.preventDefault()
+                    mx = (e.changedTouches[0].pageX - canvas.getBoundingClientRect().left) / scale
+                    my = (e.changedTouches[0].pageY - canvas.getBoundingClientRect().top) / scale
+                })
+                window.addEventListener('touchend', canvas.onmouseup)
+                window.onkeydown = function(e) {
+                    if (e.keyCode == 65 || e.keyCode == 37 || e.key.toUpperCase() == "A" || e.key.toUpperCase() == "ARROWLEFT") {
+                        key_press = 1
+                    } else if (e.keyCode == 68 || e.keyCode == 39 || e.key.toUpperCase() == "D" || e.key.toUpperCase() == "ARROWRIGHT") {
+                        key_press = -1
+                    }
+                }
+                window.onkeyup = function() {
+                    key_press = 0
+                }
+                highScore = 0
+                then = Date.now()
+                tick()
+            }
+        </script>
+    </body>
+</html>
