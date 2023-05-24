@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+    <style>
+        body {
+            padding: 10px 50px;
+            font-family: verdana; 
+            line-height: 1.5;
+            font-size: 15px;	
+        }
+        .button {
+            background-color: #555555;
+            border: none;
+            color: white;
+            padding: 8px 8px;
+            border-radius: 5px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 48px;
+            width: 150px;
+            height: 95px;
+        }
+    </style>
+    <title><a href="https://potatonotes.netlify.app/">RebelPotato</a>的合成小球</title>
+    <div style="text-align: center">
+        <h1 style="display: inline">合成小球</h1>
+		<h2>按下鼠标释放</h2>
+        <h3 style="display: inline">分数：
+            <h3 id="score" style="display: inline">0</h3>
+        </h3>
+    </div>
+    <div style="text-align:center">
+        <canvas id="myCanvas" height = 1200 style="border:3px solid #d3d3d3;">
+            你的浏览器不支持 canvas 标签。换一个浏览器吧！
+        </canvas>
+        <div>
+            <!-- <button class="button">◀️</button> -->
+            <!-- <button class="button">🔽</button> -->
+            <!-- <button class="button">▶️</button> -->
+        </div>
+    </div>
+    <h1>Ball Mash Game</h1>
+    <script>
+
+/*************************************************************************************************/
+
+let canvas = document.getElementById("myCanvas");
+let ctx = canvas.getContext("2d");
+canvas.width = window.innerWidth - 150;
+canvas.height = window.innerHeight - 200;
+if (canvas.width > canvas.height / 1.6) {
+	canvas.width = canvas.height / 1.6
+}
+//the logical height is 1 , the logical width is W, with 0 as the mid point
+const ratio = 1/canvas.height;
+const W = canvas.width*ratio/2;
+ctx.translate(canvas.width/2,canvas.height);
+ctx.scale(1/ratio,-1/ratio);
+
+//utilities
+
+class Vec {
+    constructor (x,y){
+        this.x=x;
+        this.y=y;
+    }
+    addthis(v){this.x+=v.x;this.y+=v.y};
+    scalethis(t){this.x*=t;this.y*=t;};
+    minusthis(v){this.x-=v.x;this.y-=v.y;};
+    normalizethis(v){if(len(this)>1e-9) scalethis(1/len(this))};
+}
+function add(a,b){
+    return new Vec(a.x+b.x,a.y+b.y);
+}
+function scale(t,a){
+    return new Vec(t*a.x,t*a.y);
+}
+function minus(a,b){
+    return new Vec(a.x-b.x,a.y-b.y);
+}
+function dot(a,b){
+    return a.x*b.x+a.y*b.y;
+}
+function len(a){
+    return Math.sqrt(a.x*a.x+a.y*a.y);
+}
+function normalize(a){
+    return (len(a)>1e-9 ? scale(1/len(a),a) : a);
+}
+
+function clamp(l,r,x){
+    if(x>r) return r;
+    if(x>l) return x;
+    return l;
+}
+
+//monitors
+    //if the command is a touch/click, then release the ball at that place
+    //if the command is a button press, then move the claw accordingly
+
+canvas.addEventListener("mousemove",(e) => {
+    if(requesting_input){
+        let cRect = canvas.getBoundingClientRect();     
+        let moveX = (Math.round(e.clientX - cRect.left)-canvas.width/2)*ratio;
+        //set the clawx to moveX
+        // console.log(moveX);
+        clawx = clamp(-W+claw_ball.radius(),W-claw_ball.radius(),moveX);
+        claw_ball.pos.x = clawx;
+    }
+})
+canvas.addEventListener("click",(e) => {
+    if(requesting_input){
+        let cRect = canvas.getBoundingClientRect();     
+        let moveX = (Math.round(e.clientX - cRect.left)-canvas.width/2)*ratio;
+        drop_ball();
+        // console.log("clicked: "+moveX);
+    }
+})
+canvas.addEventListener("touchstart",(e) => {
+    if(requesting_input){
+        let cRect = canvas.getBoundingClientRect();     
+        let moveX = (Math.round(e.touches[0].clientX - cRect.left)-canvas.width/2)*ratio;
+        // console.log("Touched: "+moveX);
+        clawx = clamp(-W+claw_ball.radius(),W-claw_ball.radius(),moveX);
+        claw_ball.pos.x = clawx;
+        drop_ball();
+    }
+})
+
+//game state
+let requesting_input
+let clawx;//the x coordinate of the claw
+let claw_ball;//the ball on the claw
+let balls; //the set of all balls in game
+let score;
+const min_radius = 0.02;
+const max_level = 10;//0 is the start
+const G = new Vec(0,-0.001);
+const inner_color_sequence = [ "#701687" , "#fc3b50" , "#ff6b00" , "#ffe417" , "#5dde21" , "#e51b33" ,
+                               "#f9b16b" , "#ffe047" , "#fffaea" , "#0c8d17" , "#f6284e"];
+const outer_color_sequence = [ "#541544" , "#951224" , "#a14214" , "#81601d" , "#83621d" , "#743b30" ,
+                               "#dd6414" , "#cb7d28" , "#724118" , "#096510" , "#096510"];
+let level_scale = 1.372;
+let pow_num = new Array();
+
+class Ball {
+    constructor (p,v,l){
+        //p and v are vectors
+        this.prepos=this.pos = p;
+        this.vel = v;
+        this.level = l;//starts from zero
+    }
+    radius() {
+        return pow_num[this.level]*min_radius;
+    }
+}
+function radius(level) {
+    return pow_num[level]*min_radius;
+}
+
+function setup(){
+    //returns everything to normal
+    requesting_input = true;
+    clawx = 0;
+    score = 0;
+    balls = new Set();
+    pow_num[0]=1;
+    for(let i=1;i<=max_level;i++,level_scale-=0.03) pow_num[i]=pow_num[i-1]*level_scale;
+    claw_ball = new Ball(new Vec(clawx,0.85 + radius(0)),new Vec(0,0),0);
+    droptime = performance.now();
+}
+
+function physics_step(){ //step the physics
+    //apply the force
+    balls.forEach((b)=>{
+        b.vel.addthis(G);
+    })
+    //calculate new position
+    balls.forEach((b)=>{
+        b.prepos=b.pos;
+        b.pos=add(b.pos,b.vel);
+    })
+    //solve constraints
+    for(let t=0.8;t<=1;t+=0.1) solve_constraints_once(t);
+    //calculate new velocity
+    balls.forEach((b)=>{
+        b.vel = minus(b.pos,b.prepos);
+    })
+}
+
+// function for_each_2_balls(fn){
+//     //fn doesn't has a return value
+//     let ball_iter = balls.values();
+//     if(balls.values()!=undefined) return;
+//     let current_thing = ball_iter.next();
+//     console.log(current_thing.value.pos.x);
+//     while(!current_thing.done){
+//         let new_iter = ball_iter;
+//         let other_thing = new Object();
+//         other_thing.done = false;
+//         while(!other_thing.done){
+//             other_thing = new_iter.next();
+//             let ball1 = current_thing.value;
+//             let ball2 = other_thing.value;
+//             //the two balls are guaranteed to be unsame
+//             fn(ball1,ball2);
+//         }
+//         current_thing = ball_iter.next();
+//     }
+// }
+
+function for_each_2_balls(fn){
+    balls.forEach((ball1)=>{
+        balls.forEach((ball2)=>{
+            if(ball1!=ball2) fn(ball1,ball2);
+        })
+    })
+}
+
+function solve_constraints_once(t){
+    //t stands for the amount of recovery
+    //solve ball collisions
+    for_each_2_balls((ball1,ball2)=>{
+        //if they collide
+        // console.log("bumped!");
+        let dis = ball1.radius()+ball2.radius()-len(minus(ball1.pos,ball2.pos));
+        if(dis>0){
+            //move according to mass
+            //the mass is the square of the radius
+            if(ball1.level==ball2.level){
+                ball1.level++;
+                score+=ball1.level;
+                document.getElementById("score").innerHTML=Math.floor(score);
+                ball1.pos=scale(0.5,add(ball1.pos,ball2.pos));
+                ball1.vel=scale(0.5,add(ball1.vel,ball2.vel));
+                balls.delete(ball2);
+            }
+            let m1=ball1.radius()*ball1.radius(),m2=ball2.radius()*ball2.radius();
+            let V = normalize(minus(ball2.pos,ball1.pos));
+            // console.log(V.x+" "+V.y);
+            ball1.pos.addthis(scale(-t*m2/(m1+m2)*dis,V));
+            ball2.pos.addthis(scale(t*m1/(m1+m2)*dis,V));
+        }
+    })
+    //solve wall collisions
+    balls.forEach((b)=>{
+        if(b.pos.y<b.radius()) b.pos.y=b.radius();
+        b.pos.x = clamp(-W+b.radius(),W-b.radius(),b.pos.x);
+    })
+}
+
+function drop_ball(){
+    requesting_input = false;
+    // console.log("dropped!");
+    balls.add(claw_ball);
+    let randlev = Math.floor(Math.random()*4);
+    claw_ball = new Ball(new Vec(clawx,0.85 + radius(randlev)),new Vec(0,0),randlev);
+    droptime = performance.now();
+}
+
+// timer for animation
+function step(){
+    physics_step();
+    // draw everything
+    if(!requesting_input){
+        //check for all balls whether they are moving
+        if(performance.now() - droptime > 2500){
+            requesting_input = true;
+            // console.log("on.");
+        }
+    }
+    ctx.clearRect(-W,0,2*W,1);
+    draw_line(new Vec(-W,0.8),new Vec(W,0.8));
+    balls.forEach(b => {
+        draw_ball(b);
+        // console.log(b.pos.y);
+    });
+    claw_ball.pos.x = clawx;
+    if(requesting_input) draw_ball(claw_ball);
+    window.requestAnimationFrame(step);
+}
+
+function draw_line(v1,v2){
+    ctx.beginPath();
+    ctx.lineWidth = 5*ratio;
+    ctx.strokeStyle = "red";
+    ctx.moveTo(v1.x,v1.y);
+    ctx.lineTo(v2.x,v2.y);
+    ctx.stroke(); // Draw it
+    // console.log("Drawn.");
+}
+
+function draw_ball(b){
+    draw_circle(b.pos,b.radius(),outer_color_sequence[b.level],inner_color_sequence[b.level]);
+}
+
+function draw_circle(v,r,outer_color,inner_color){
+    ctx.beginPath();
+    ctx.lineWidth = r*5/min_radius*ratio;
+    ctx.strokeStyle = outer_color;
+    ctx.fillStyle = inner_color;
+    ctx.arc(v.x,v.y,r-ctx.lineWidth/2, 0, 2 * Math.PI);
+    ctx.stroke();
+    ctx.fill();
+}
+
+setup();
+step();
+/*************************************************************************************************/
+
+    </script>
+</html>
