@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>吹牛皮</title>
+	</head>
+	<body>
+		<div style="text-align: center"><h2>吹牛皮</h2></div>
+		<script type="text/javascript">
+			const PI = 3.14159265359
+			function RndNext(min, max) {
+				return parseInt(Math.random() * (max - min) + min)
+			}
+			
+			var canvas, context
+			const CARD_SMOOTH_RADIUS = 10
+			const CARD_WIDTH = 60
+			const CARD_HEIGHT = 100
+			// 牌：0 大怪；1 小怪；2 H3；3 S3；4 D3；5 C3；……
+			function get_suit(ordinal) {
+				if (ordinal < 2) return 'J';
+				return "♥♠♦♣"[(ordinal - 2) % 4];
+			}
+			function get_number(ordinal) {
+				if (ordinal < 2) return "Joker";
+				var n = parseInt((ordinal - 2) / 4);
+				if (n <= 7) return n + 3 + "";
+				return "JQKA2"[n - 8];
+			}
+			function drawCard(left, top, ordinal) {
+				context.fillStyle = 'white'
+				context.strokeStyle = 'black'
+				context.beginPath()
+				context.moveTo(left, top + CARD_SMOOTH_RADIUS)
+				context.arc(left + CARD_SMOOTH_RADIUS, top + CARD_SMOOTH_RADIUS, CARD_SMOOTH_RADIUS, PI, PI * 3 / 2)
+				context.lineTo(left + CARD_WIDTH - CARD_SMOOTH_RADIUS, top)
+				context.arc(left + CARD_WIDTH - CARD_SMOOTH_RADIUS, top + CARD_SMOOTH_RADIUS, CARD_SMOOTH_RADIUS, PI * 3 / 2, PI * 2)
+				context.lineTo(left + CARD_WIDTH, top + CARD_HEIGHT - CARD_SMOOTH_RADIUS)
+				context.arc(left + CARD_WIDTH - CARD_SMOOTH_RADIUS, top + CARD_HEIGHT - CARD_SMOOTH_RADIUS, CARD_SMOOTH_RADIUS, 0, PI / 2)
+				context.lineTo(left + CARD_SMOOTH_RADIUS, top + CARD_HEIGHT)
+				context.arc(left + CARD_SMOOTH_RADIUS, top + CARD_HEIGHT - CARD_SMOOTH_RADIUS, CARD_SMOOTH_RADIUS, PI / 2, PI)
+				context.closePath()
+                context.fill()
+                context.stroke()
+				if (ordinal % 2 == 1) {
+					context.fillStyle = 'black'
+				} else {
+					context.fillStyle = 'red'
+				}
+				if (ordinal == 0 || ordinal == 1) {
+					context.font = "13px Arial"
+					context.fillText('J', left + 2.5, top + 15)
+					context.font = "11px Arial"
+					context.fillText('o', left + 2.5, top + 24)
+					context.fillText('k', left + 2.5, top + 33)
+					context.fillText('e', left + 2.5, top + 41)
+					context.fillText('r', left + 2.5, top + 49)
+				} else {
+					var number = get_number(ordinal)
+					if (number == 'Q' || number == 'A') {
+						context.font = "13px Arial"
+						context.fillText(number, left + 1, top + 15)
+					} else if (number == '10') {
+						context.font = "13px Arial"
+						context.fillText('l', left + 1.5, top + 15)
+						context.fillText('0', left + 4, top + 15)
+					} else {
+						context.font = "13px Arial"
+						context.fillText(number, left + 2, top + 15)
+					}
+					var suit = get_suit(ordinal)
+					context.font = "14px Arial"
+					context.fillText(suit, left + 1.5, top + 25)
+				}
+				context.font = "25px Arial"
+				context.fillText('吹', left + 17, top + 55)
+			}
+            var mousing, mx, my
+            const width = 700
+            const height = 350
+			
+			function Sort(arr) {
+				arr.sort(function (x, y) { return x - y } )
+			}
+			
+			var cut, selectAll, nSelectAll, btnDt, selectNum, l, p0Num, p1Num, p2Num, p1Card, p2Card, proceed
+			
+			var player, table, turn, canContinue
+			var boxUp, boxUpNum, selectStr
+			var p0Card, doubt, ctc
+			
+			function playerCardShow() {
+                context.fillStyle = "lightblue"
+				context.fillRect(0, 0, width, height)
+				for (var i = 0; i < player[0].cardNumber; i += 1) {
+					drawCard(11 * i + 20, 230 - boxUp[i] * 40, player[0].card[i])
+				}
+				
+				context.fillStyle = 'black'
+				context.font = '20px Arial'
+				context.fillText(p0Card, 130, 170)
+				if (doubt >= 0) {
+					drawCard(320, 70, doubt)
+				}
+				
+				context.fillStyle = 'black'
+				context.font = '15px Arial'
+				context.fillText(ctc, 320, 190)
+				
+				p0Num.innerHTML = player[0].cardNumber + ""
+			}
+			
+			function start_game() {
+				var arr = []
+				boxUp = []
+				for (var i = 0; i < 54; i += 1) {
+					arr.push(i)
+					boxUp.push(false)
+				}
+				boxUpNum = 0
+				for (var i = 54; i > 0; i -= 1) {
+					var j = RndNext(0, i)
+					var t = arr[i - 1]
+					arr[i - 1] = arr[j]
+					arr[j] = t
+				}
+				player = []
+				player.push(Player())
+				player.push(Player())
+				player.push(Player())
+				table = Player()
+				for (var i = 0; i < 54; i += 1) {
+					player[i % 3].AddCard(arr[i])
+				}
+				
+				turn = 0
+				canContinue = 0
+				selectStr = ""
+				cut.hidden = true
+				selectAll.disabled = false
+				nSelectAll.disabled = false
+				btnDt.hidden = true
+				selectNum.hidden = true
+				selectNum.disabled = false
+				proceed.hidden = true
+				selectNum.selectedIndex = 0
+				p0Num.innerHTML = "18"
+				p1Num.innerHTML = "18"
+				p2Num.innerHTML = "18"
+				p0Card = "？"
+				p1Card.innerHTML = ""
+				p2Card.innerHTML = ""
+				l.innerHTML = ""
+				doubt = -1
+				ctc = ""
+				
+				playerCardShow()
+			}
+			
+			function selectAll_Click() {
+				boxUpNum = player[0].cardNumber
+				for (var i = 0; i < boxUpNum; i += 1) {
+					boxUp[i] = true
+				}
+				doubt = -1
+				playerCardShow()
+				l.innerHTML = boxUpNum + "张"
+				cut.hidden = false
+				selectNum.hidden = false
+			}
+			
+			function nSelectAll_Click() {
+				for (var i = 0; i < player[0].cardNumber; i += 1) {
+					boxUp[i] = false
+				}
+				boxUpNum = 0
+				playerCardShow()
+				l.innerHTML = ""
+				cut.hidden = true
+				selectNum.hidden = true
+			}
+			
+			function cut_Click() {
+				player[2].Cut(table)
+				nSelectAll.disabled = true
+				selectAll.disabled = true
+				btnDt.hidden = true
+				arr = []
+				for (var i = 0; i < 54; i += 1) {
+					if (boxUp[i]) {
+						boxUp[i] = false;
+						if (i < player[0].cardNumber) {
+							arr.push(player[0].card[i])
+						}
+					}
+				}
+				while (arr.length > 0) {
+					player[0].WillCut(arr.pop())
+				}
+				l.innerHTML = ""
+				turn = 1
+				cut.hidden = true
+				selectStr = selectNum.value
+				player[0].cutStr = selectStr
+				selectNum.hidden = true
+				p0Card = boxUpNum + "张" + selectStr
+				boxUpNum = 0
+				playerCardShow()
+				player1play(player[0])
+			}
+			
+			function player1play(p) {
+				doubt = -1
+				if (player[1].Think(table, p, selectStr)) {
+					p1Card.innerHTML = "质疑"
+					var z = RndNext(0, player[0].willNumber)
+					var n = RndNext(0, 3)
+					for (var i = 0; i < n; i += 1) {
+						if (get_number(player[0].willCard[z]) == selectStr || player[0].willCard[z] < 2) {
+							z = RndNext(0, player[0].willNumber)
+						}
+					}
+					doubt = player[0].willCard[z]
+					proceed.hidden = false
+					if (get_number(player[0].willCard[z]) == selectStr || player[0].willCard[z] < 2) {
+						player[0].Cut(player[1])
+						table.CutAll(player[1])
+						canContinue = 111
+						return
+					} else {
+						canContinue = 1111
+					}
+				} else {
+					p1Card.innerHTML = player[1].willNumber + "张" + player[1].cutStr
+					p2Card.innerHTML = "？"
+					player[0].Cut(table)
+					turn = 2
+					canContinue = 333
+					proceed.hidden = false
+				}
+				p1Num.innerHTML = player[1].cardNumber + ""
+			}
+			
+			function player2play(p) {
+				if (player[2].Think(table, p, player[1].cutStr)) {
+					p2Card.innerHTML = "质疑"
+					var z = RndNext(0, player[1].willNumber)
+					var n = RndNext(0, 3)
+					for (var i = 0; i <= n; i += 1) {
+						if (!(get_number(player[1].willCard[z]) == player[1].cutStr || player[1].willCard[z] < 2)) {
+							z = RndNext(0, player[1].willNumber)
+						}
+					}
+					ctc = ""
+					playerCardShow()
+					doubt = player[1].willCard[z]
+					proceed.hidden = false
+					if (get_number(player[1].willCard[z]) == player[1].cutStr || player[1].willCard[z] < 2) {
+						player[1].Cut(player[2])
+						table.CutAll(player[2])
+						selectNum.disabled = false
+						canContinue = 222
+						return
+					} else {
+						canContinue = 2222
+					}
+				} else {
+					p2Card.innerHTML = player[2].willNumber + "张" + player[2].cutStr
+					p0Card = "？"
+					player[1].Cut(table)
+					p2Num.innerHTML = player[2].cardNumber + ""
+					turn = 0
+					selectNum.value = player[2].cutStr
+					selectNum.disabled = true
+					var tmp = false
+					for (var i = 0; i < 54; i += 1) {
+						if (boxUp[i]) {
+							tmp = true
+							break
+						}
+					}
+					if (tmp) {
+						cut.hidden = false
+						selectNum.hidden = false
+					}
+					nSelectAll.disabled = false
+					selectAll.disabled = false
+					btnDt.hidden = false
+					proceed.hidden = true
+					if (player[2].cardNumber == 0) {
+						cut.disabled = true
+					} else {
+						cut.disabled = false
+					}
+				}
+				p2Num.innerHTML = player[2].cardNumber + ""
+			}
+			
+			function btnDt_Click() {
+				cut.disabled = false
+				nSelectAll.disabled = true
+				selectAll.disabled = true
+				btnDt.hidden = true
+				cut.hidden = true
+				selectNum.hidden = true
+				p0Card = "质疑"
+				var z = RndNext(0, player[2].willNumber)
+				doubt = player[2].willCard[z]
+				for (var i = 0; i < 54; i += 1) {
+					boxUp[i] = false
+				}
+				boxUpNum = 0
+				p0Num.innerHTML = player[0].cardNumber + ""
+				p1Num.innerHTML = player[1].cardNumber + ""
+				p2Num.innerHTML = player[2].cardNumber + ""
+				proceed.hidden = false
+				if (get_number(player[2].willCard[z]) == player[2].cutStr || player[2].willCard[z] < 2) {
+					player[2].Cut(player[0])
+					table.CutAll(player[0])
+					turn = 1
+					l.innerHTML = ""
+					ctc = "质疑失败"
+					p0Card = ""
+					p2Card.innerHTML = ""
+					playerCardShow()
+					canContinue = 444
+					p0Num.innerHTML = player[0].cardNumber + ""
+				} else {
+					selectNum.disabled = false
+					ctc = "质疑成功"
+					playerCardShow()
+					p1Card.innerHTML = ""
+					p2Card.innerHTML = ""
+					player[2].Cut(table)
+					table.CutAll(player[2])
+					canContinue = -222
+				}
+			}
+			
+			function proceed_Click() {
+				switch (canContinue) {
+					case 111:
+						turn = 2
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""
+						canContinue = -111
+						p0Card = ""
+						p1Card.innerHTML = ""
+						ctc = "质疑失败"
+						playerCardShow()
+						break
+					case 1111:
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""
+						player[0].Cut(table);
+						table.CutAll(player[0]);
+						turn = 1
+						p0Card = ""
+						p1Card.innerHTML = ""
+						p2Card.innerHTML = ""
+						ctc = "质疑成功"
+						playerCardShow()
+						canContinue = 444
+						break
+					case -111:
+						if (player[0].cardNumber + player[0].willNumber == 0) {
+							alert("恭喜，您赢了！")
+							start_game()
+							return
+						}
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""
+						canContinue = 0
+						proceed.hidden = true
+						player2play(null)
+						ctc = ""
+						doubt = -1
+						playerCardShow()
+						break;
+					case 222:
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""
+						p1Card.innerHTML = ""
+						p2Card.innerHTML = ""
+						canContinue = -222;
+						ctc = "质疑失败"
+						playerCardShow()
+						break;
+					case 2222:
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""						
+						player[1].Cut(table);
+						table.CutAll(player[1]);
+						turn = 1;
+						p0Card = ""
+						p1Card.innerHTML = ""
+						p2Card.innerHTML = ""
+						ctc = "质疑成功"
+						playerCardShow()
+						canContinue = -111
+						break
+					case 333:
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""	
+						ctc = ""
+						canContinue = 0
+						proceed.hidden = true
+						player2play(player[1])
+						break
+					case -222:
+						if (player[1].cardNumber + player[1].willNumber == 0) {
+							alert("很遗憾，你输了！")
+							start_game()
+							return
+						}
+						btnDt.hidden = true
+						var tmp = false
+						for (var i = 0; i < 54; i += 1) {
+							if (boxUp[i]) {
+								tmp = true
+								break
+							}
+						}
+						if (tmp) {
+							cut.hidden = false
+							selectNum.hidden = false
+						}
+						p0Num.innerHTML = player[0].cardNumber + ""
+						p1Num.innerHTML = player[1].cardNumber + ""
+						p2Num.innerHTML = player[2].cardNumber + ""	
+						p0Card = "？"
+						canContinue = 0
+						turn = 0
+						nSelectAll.disabled = false
+						selectAll.disabled = false
+						ctc = ""
+						doubt = -1
+						proceed.hidden = true
+						playerCardShow()
+						break
+					case 444:
+						if (player[2].cardNumber + player[2].willNumber == 0) {
+							alert("很遗憾，你输了！")
+							start_game()
+							return
+						}
+						
+						ctc = ""
+						doubt = -1
+						playerCardShow()
+						player1play(null)
+						break
+				}
+			}
+		</script>
+		<div id="body" style="text-align: center">
+			<div style="margin:0px auto; width:700px; border: 1px solid; background-color: lightblue">
+				<table width="100%"><tbody>
+					<tr>
+						<td style="font-weight: bold" width="6%">巨神一</td>
+						<td />
+						<td style="font-weight: bold" width="6%">巨神二</td>
+					</tr>
+					<tr>
+						<td width="30%"><label style="background-color: blue; color: white; font-weight: bold">&nbsp;<label  id="p1Num">18</label>&nbsp;</label></td>
+						<td />
+						<td width="30%"><label style="background-color: blue; color: white; font-weight: bold">&nbsp;<label  id="p2Num">18</label>&nbsp;</label></td>
+					</tr>
+					<tr>
+						<td style="font-family: Arial; font-size: 20px" width="10%" id="p1Card"></td>
+						<td style="font-family: Arial; font-size: 20px; color: lightblue; user-select: none;">文字</td>
+						<td style="font-family: Arial; font-size: 20px" width="10%" id="p2Card"></td>
+					</tr>
+				</tr></tbody></table>
+				<canvas id="mainCanvas" width="700" height="350">
+				</canvas><br>
+				<table width="100%"><tbody><tr>
+					<td width="8%" />
+					<td style="font-weight: bold" width="5%">你</td>
+					<td width="12%"><table><tbody>
+						<tr><td><button id="selectAll" onclick="selectAll_Click();">全选</button></td></tr>
+						<tr><td><button id="nSelectAll" onclick="nSelectAll_Click();">全不选</button></td></tr>
+					</tbody></table></td>
+					<td width="5%"><label style="background-color: blue; color: white; font-weight: bold">&nbsp;<label id="p0Num">18</label>&nbsp;</label></td>
+					<td width="8%" id="l"/>
+					<td width="5%"><select id="selectNum">
+						<option selected>3</option>
+						<option>4</option>
+						<option>5</option>
+						<option>6</option>
+						<option>7</option>
+						<option>8</option>
+						<option>9</option>
+						<option>10</option>
+						<option>J</option>
+						<option>Q</option>
+						<option>K</option>
+						<option>A</option>
+						<option>2</option>
+					</select></td>
+					<td width="9%"><button id="cut" onclick="cut_Click();">出牌</button></td>
+					<td width="9%"><button id="btnDt" onclick="btnDt_Click();">质疑</button></td>
+					<td/>
+					<td width="20%"><button style="font-size: 220%" id="proceed" onclick="proceed_Click();">&nbsp;&nbsp;继续&nbsp;&nbsp;</button></td>
+				</tbody></table>
+			</div>
+        </div>
+		<script type="text/javascript">
+			function mouse_click() {
+				if (selectAll.disabled) return
+				//drawCard(11 * i + 20, 230 - boxUp[i] * 40, player[0].card[i])
+				var x = -1
+				if (mx >= 20 && mx <= player[0].cardNumber * 11 + 69 && my >= 190 && my <= 330) {
+					var tx = parseInt((mx - 20) / 11)
+					if (my <= 230) {
+						while (tx >= 0 && (tx >= player[0].cardNumber || !boxUp[tx])) {
+							tx -= 1
+						}
+						if (tx >= 0 && tx * 11 + 80 < mx) {
+							tx = -1
+						}
+					} else if (my <= 290) {
+						if (tx >= player[0].cardNumber) {
+							tx = player[0].cardNumber - 1
+						}
+					} else {
+						while (tx >= 0 && (tx >= player[0].cardNumber || boxUp[tx])) {
+							tx -= 1
+						}
+						if (tx >= 0 && tx * 11 + 80 < mx) {
+							tx = -1
+						};
+					}
+					if (tx == -1) return
+					if (boxUp[tx]) {
+						boxUp[tx] = false
+						boxUpNum -= 1
+					} else {
+						boxUp[tx] = true
+						boxUpNum += 1
+					}
+					if (boxUpNum == 0) {
+						l.hidden = true
+						selectNum.hidden = true
+						cut.hidden = true
+					} else {
+						l.hidden = false
+						l.innerHTML = boxUpNum + "张"
+						selectNum.hidden = false
+						cut.hidden = false
+					}
+					playerCardShow()
+				}
+			}
+            window.onload = function () {
+                canvas = document.getElementById("mainCanvas")
+                context = canvas.getContext("2d")
+                canvas.onmousedown = function (e) {
+                    mousing = true
+                    mx = (e.clientX - canvas.getBoundingClientRect().left)
+                    my = (e.clientY - canvas.getBoundingClientRect().top)
+					mouse_click()
+                }
+                canvas.onmouseup = function () {
+                    mousing = false
+                }
+                canvas.addEventListener('touchstart', function (e) {
+                    mousing = true
+                    e.preventDefault()
+                    mx = (e.changedTouches[0].pageX - canvas.getBoundingClientRect().left)
+                    my = (e.changedTouches[0].pageY - canvas.getBoundingClientRect().top)
+                })
+                window.addEventListener('touchend', canvas.onmouseup)
+				
+				cut = document.getElementById("cut")
+				selectAll = document.getElementById("selectAll")
+				nSelectAll = document.getElementById("nSelectAll")
+				btnDt = document.getElementById("btnDt")
+				selectNum = document.getElementById("selectNum")
+				l = document.getElementById("l")
+				p0Num = document.getElementById("p0Num")
+				p1Num = document.getElementById("p1Num")
+				p2Num = document.getElementById("p2Num")
+				p1Card = document.getElementById("p1Card")
+				p2Card = document.getElementById("p2Card")
+				proceed = document.getElementById("proceed")
+				
+				start_game()
+            }
+			
+			function Player() {
+				return {
+					card: [],
+					willCard: [],
+					cardNumber: 0,
+					willNumber: 0,
+					cutStr: "",
+					AddCard: function (x) {
+						this.cardNumber += 1
+						this.card.push(x)
+						Sort(this.card)
+					},
+					FindCard: function (x) {
+						for (var i = 0; i < this.cardNumber; i += 1) {
+							if (this.card[i] == x) return i
+						}
+						return -1
+					},
+					RemoveCard: function (i) {
+						if (i < this.cardNumber && i >= 0) {
+							var tmp = this.card[this.cardNumber - 1]
+							this.card[this.cardNumber - 1] = this.card[i]
+							this.card[i] = tmp
+							this.card.pop()
+							Sort(this.card)
+							this.cardNumber -= 1
+						}
+					},
+					WillCut: function (x) {
+						var f = this.FindCard(x)
+						if (f >= 0) {
+							this.RemoveCard(f);
+							
+							this.willNumber += 1
+							this.willCard.push(x)
+							Sort(this.willCard)
+						}
+					},
+					Cut: function (p) {
+						while (this.willNumber > 0) {
+							this.willNumber -= 1
+							p.AddCard(this.willCard.pop())
+						}
+					},
+					CutAll: function (p) {
+						while (this.cardNumber > 0) {
+							this.cardNumber -= 1
+							p.AddCard(this.card.pop())
+						}
+					},
+					Think: function (table, p, nu) {
+						if (p != null) {
+							this.cutStr = p.cutStr
+							if (p.cardNumber == 0) return true
+							if (RndNext(0, 3) < 1) {
+								var a = 0
+								for (var i = 0; i < p.willNumber; i += 1) {
+									if (p.willCard[i] < 2 || get_number(p.willCard[i]) == nu) a += 1
+								}
+								var b = a
+								var c = p.willNumber
+								if (b / c < 0.6) {
+									this.cutStr = ""
+									return true;
+								}
+								a = 0
+								for (var i = 0; i < this.cardNumber; i += 1) {
+									if (this.card[i] < 2 || get_number(this.card[i]) == nu) a += 1
+								}
+								if (a == 0) {
+									if (RndNext(0, 2) == 0) return true
+									else {
+										a = RndNext(1, 4)
+										for (var i = 0; i < a; i++)
+										{
+											this.WillCut(this.card[RndNext(0, this.cardNumber)])
+										}
+									}
+								} else {
+									var played = false;
+									for (var i = 0; i < this.cardNumber; i += 1) {
+										if (get_number(this.card[i]) == nu) {
+											this.WillCut(this.card[i])
+											played = true
+											break
+										}
+									}
+									if (!played) {
+										for (var i = 0; i < this.cardNumber; i += 1) {
+											if (this.card[i] < 2) {
+												this.WillCut(this.card[i])
+												played = true
+												break
+											}
+										}
+									}
+								}
+							} else {
+								if (p.willNumber > 7 || RndNext(0, 6) < 1) return true
+								if (p.willNumber > 6 && RndNext(0, 1) < 1) return true
+								var aa = 0
+								for (var i = 0; i < this.cardNumber; i += 1) {
+									if (this.card[i] < 2 || get_number(this.card[i]) == nu) aa += 1
+								}
+								if (aa == 0 && RndNext(0, 3) < 1) this.WillCut(this.card[RndNext(0, this.cardNumber)])
+								else if (aa > 0) {
+									var m = RndNext(0, aa + 1)
+									if (m < 1) {
+										var b = RndNext(1, Math.min(3 * aa, this.cardNumber) + 1);
+										for (var i = 0; i < b; i += 1) {
+											this.WillCut(this.card[RndNext(0, this.cardNumber)])
+										}
+									} else {
+										var n = RndNext(0, m + 3)
+										while (m > 0) {
+											for (var i = this.cardNumber - 1; i >= 0; i -= 1) {
+												if (this.card[i] < 2 || get_number(this.card[i]) == nu) {
+													this.WillCut(this.card[i])
+													m -= 1
+													break
+												}
+											}
+										}
+										for (var i = 0; i <= n; i += 1) {
+											if (this.cardNumber == 0) break
+											this.WillCut(this.card[RndNext(0, this.cardNumber)])
+										}
+										if (RndNext(0, 7) < 1) {
+											while (this.cardNumber > 0) {
+												this.WillCut(this.card[0])
+											}
+										}
+									}
+								} else return true
+							}
+						} else {
+							var a = 0
+							if (RndNext(0, 7) < 1) {
+								a = RndNext(1, 14)
+								if (a == 1) {
+									a = 'A'
+								} else if (a == 11) {
+									a = 'J'
+								} else if (a == 12) {
+									a = 'Q'
+								} else if (a == 13) {
+									a = 'K'
+								} else {
+									a = a + ""
+								}
+							} else {
+								for (var i = 0; i < 5; i += 1) {
+									a = get_number(this.card[RndNext(0, this.cardNumber)]);
+									if (a != "Joker") break
+								}
+								if (a == "Joker")
+								{
+									a = rnd.Next(1, 14)
+									if (a == 1) {
+										a = 'A'
+									} else if (a == 11) {
+										a = 'J'
+									} else if (a == 12) {
+										a = 'Q'
+									} else if (a == 13) {
+										a = 'K'
+									} else {
+										a = a + ""
+									}
+								}
+							}
+							var aa = 0
+							for (var i = 0; i < this.cardNumber; i += 1) {
+								if (this.card[i] < 2 || get_number(this.card[i]) == a) aa += 1
+							}
+							this.cutStr = a
+							if (aa == 0) {
+								this.WillCut(this.card[RndNext(0, this.cardNumber)])
+							} else {
+								var m = RndNext(0, aa + 1)
+								if (m < 1 || RndNext(0, 4) < 1) {
+									var b = RndNext(1, Math.min(6 * (aa + 1), this.cardNumber) + 1);
+									for (var i = 0; i < b; i++) {
+										this.WillCut(this.card[RndNext(0, this.cardNumber)])
+									}
+								} else {
+									var n = RndNext(0, m + 3)
+									while (m > 0) {
+										for (var i = this.cardNumber - 1; i >= 0; i -= 1) {
+											if (this.card[i] < 2 || get_number(this.card[i]) == a) {
+												this.WillCut(this.card[i])
+												m -= 1
+												break
+											}
+										}
+									}
+									for (var i = 0; i <= n; i += 1) {
+										if (this.cardNumber == 0) break
+										this.WillCut(this.card[RndNext(0, this.cardNumber)])
+									}
+									if (RndNext(0, 7) < 1) {
+										while (this.cardNumber > 0) {
+											this.WillCut(this.card[0])
+										}
+									}
+								}
+							}
+						}
+						return false
+					}
+				}
+			}
+        </script>
+	</body>
+</html>
