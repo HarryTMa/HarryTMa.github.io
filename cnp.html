@@ -575,6 +575,7 @@
                     e.preventDefault()
                     mx = (e.changedTouches[0].pageX - canvas.getBoundingClientRect().left)
                     my = (e.changedTouches[0].pageY - canvas.getBoundingClientRect().top)
+					mouse_click()
                 })
                 window.addEventListener('touchend', canvas.onmouseup)
 				
