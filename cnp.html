@@ -16,7 +16,6 @@
 			const CARD_SMOOTH_RADIUS = 10
 			const CARD_WIDTH = 60
 			const CARD_HEIGHT = 100
-			// 牌：0 大怪；1 小怪；2 H3；3 S3；4 D3；5 C3；……
 			function get_suit(ordinal) {
 				if (ordinal < 2) return 'J';
 				return "♥♠♦♣"[(ordinal - 2) % 4];
@@ -561,23 +560,11 @@
             window.onload = function () {
                 canvas = document.getElementById("mainCanvas")
                 context = canvas.getContext("2d")
-                canvas.onmousedown = function (e) {
-                    mousing = true
+                canvas.onclick = function (e) {
                     mx = (e.clientX - canvas.getBoundingClientRect().left)
                     my = (e.clientY - canvas.getBoundingClientRect().top)
 					mouse_click()
                 }
-                canvas.onmouseup = function () {
-                    mousing = false
-                }
-                canvas.addEventListener('touchstart', function (e) {
-                    mousing = true
-                    e.preventDefault()
-                    mx = (e.changedTouches[0].pageX - canvas.getBoundingClientRect().left)
-                    my = (e.changedTouches[0].pageY - canvas.getBoundingClientRect().top)
-					mouse_click()
-                })
-                window.addEventListener('touchend', canvas.onmouseup)
 				
 				cut = document.getElementById("cut")
 				selectAll = document.getElementById("selectAll")
