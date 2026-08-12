@@ -1,26 +1,223 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="main.ico" type="image/x-icon" />
-    <link rel="shortcut icon" href="main.ico" type="image/x-icon" />
-    <title>Main Site of HarryTMa</title>
-  </head>
-  <body>
-    <h1>Tianyi Ma</h1>
-	<p>email: harryma-shs AT sjtu DOT edu DOT cn</p>
-    <p>My Projects:</p>
-    <ul>
-      <a href="/RapidRoll/">Rapid Roll</a><br/>
-      <a href="/painting.html">Painting</a><br/>
-	  <a href="/cnp.html">吹牛皮</a>
-    </ul>
-	<p>RebelPotato's Projects:</p>
-	<ul>
-		<a href="/daxigua.html">合成小西瓜</a><br/>
-		<a href="/walkers">走路的人</a>
-	</ul>
-  </body>
-</html>  
+<html lang="en" data-lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tianyi Ma · 马添翼</title>
+  <meta name="description" content="Tianyi Ma (马添翼) — Master of Finance (FinTech & Quantitative Investment) at Shanghai Jiao Tong University. Research in AI for finance, decentralized finance, and large language model interpretability.">
+  <meta name="author" content="Tianyi Ma">
+  <meta name="color-scheme" content="light dark">
 
+  <script>
+    (function () {
+      try {
+        document.documentElement.classList.add('js');
+        var t = localStorage.getItem('theme');
+        if (!t) {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+        var l = localStorage.getItem('lang');
+        if (!l) {
+          l = 'en';
+        }
+        document.documentElement.setAttribute('lang', l === 'cn' ? 'zh-CN' : 'en');
+        document.documentElement.setAttribute('data-lang', l);
+      } catch (e) {}
+    })();
+  </script>
 
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600&display=swap">
+
+  <link rel="icon" href="assets/avatar.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="site-header">
+      <button class="toggle toggle-lang" id="toggle-lang" type="button" aria-label="Switch language / 切换语言">
+        <span class="lang lang-en">EN</span>
+        <span class="sep">·</span>
+        <span class="lang lang-cn">中</span>
+      </button>
+      <button class="toggle toggle-theme" id="toggle-theme" type="button" aria-label="Toggle color theme">
+        <span class="icon-sun" aria-hidden="true">☀</span>
+        <span class="icon-moon" aria-hidden="true">☾</span>
+      </button>
+    </header>
+
+    <main>
+      <div class="hero reveal">
+        <img src="assets/avatar.png" alt="Portrait of Tianyi Ma" class="hero-avatar" width="80" height="80">
+        <div>
+          <h1 class="hero-name">
+            <span class="en">Tianyi Ma<em class="aka" lang="zh">马添翼</em></span>
+            <span class="cn">马添翼<em class="aka" lang="en">Tianyi Ma</em></span>
+          </h1>
+          <p class="hero-tagline">
+            <span class="en">Master of Finance (FinTech &amp; Quantitative Investment), Shanghai Jiao Tong University · Shanghai</span>
+            <span class="cn">上海交通大学金融硕士（金融科技与量化投资方向）· 上海</span>
+          </p>
+        </div>
+      </div>
+
+      <section class="section reveal" id="about">
+        <h2 class="section-label">
+          <span class="en">About</span><span class="cn">关于</span>
+        </h2>
+        <p>
+          <span class="en">I'm a Master of Finance student at Shanghai Jiao Tong University's Antai College of Economics and Management. My research interests center on the intersection of artificial intelligence and finance, as well as large language models. I received my undergraduate dual degree in Finance and Computer Science from SJTU.</span>
+          <span class="cn">上海交通大学安泰经济与管理学院金融硕士。研究方向聚焦于人工智能与金融的交叉，以及大语言模型。本科毕业于上海交通大学金融–计算机双学位。</span>
+        </p>
+      </section>
+
+      <section class="section reveal" id="education">
+        <h2 class="section-label">
+          <span class="en">Education</span><span class="cn">教育经历</span>
+        </h2>
+        <div class="rows">
+          <div class="row">
+            <div class="row-year">2026&nbsp;—</div>
+            <div class="row-body">
+              <div class="row-title">
+                <span class="en">Master of Finance (FinTech &amp; Quantitative Investment)</span>
+                <span class="cn">金融硕士（金融科技与量化投资方向）</span>
+              </div>
+              <div class="row-meta">
+                <span class="en">Antai College of Economics and Management, Shanghai Jiao Tong University</span>
+                <span class="cn">上海交通大学 · 安泰经济与管理学院</span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-year">2022-2026</div>
+            <div class="row-body">
+              <div class="row-title">
+                <span class="en">BSc in Economics &amp; BSc in Engineering (Finance &ndash; Computer Science Dual Degree)</span>
+                <span class="cn">经济学 &amp; 工学双学士（金融–计算机双学位）</span>
+              </div>
+              <div class="row-meta">
+                <span class="en">Antai College of Economics and Management &amp; School of Computer Science, SJTU</span>
+                <span class="cn">上海交通大学 · 安泰经济与管理学院 &amp; 计算机学院</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal" id="awards">
+        <h2 class="section-label">
+          <span class="en">Awards &amp; Honors</span><span class="cn">荣誉与奖项</span>
+        </h2>
+        <div class="rows">
+          <div class="row">
+            <div class="row-year">2025</div>
+            <div class="row-body">
+              <div class="row-title">
+                <span class="en">Bole Talent Grant (&yen;100,000)</span>
+                <span class="cn">伯乐计划资助（10 万元）</span>
+              </div>
+              <div class="row-meta">
+                <span class="en">Shanghai Jiao Tong University</span>
+                <span class="cn">上海交通大学</span>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="row-year">2024</div>
+            <div class="row-body">
+              <div class="row-title">
+                <span class="en">Ruiyuan&ndash;Sequoia Talent Development Fund (&yen;20,000)</span>
+                <span class="cn">睿远&ndash;红杉人才发展基金（2 万元）</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section reveal" id="publications">
+        <h2 class="section-label">
+          <span class="en">Publications</span><span class="cn">论文</span>
+        </h2>
+        <ol class="pubs">
+          <li class="pub">
+            <span class="pub-year">2026</span>
+            <div class="pub-body">
+              <div class="pub-title">Diagnosing Hidden Instabilities in Model Editing via Uncertainty Quantification</div>
+              <div class="pub-authors">Zihan Gu, TianYi Zhang, Xinyan Zhang, Zhiyuan Wang, Han Zhang, Yuhao Wei, Jiacheng Lu, <strong>Tianyi Ma</strong>, Xingsheng Zhang, Hua Zhang, Yue Hu</div>
+              <div class="pub-venue">ACL 2026 (Long Papers) · pp. 32544&ndash;32566</div>
+              <div class="pub-links">
+                <a href="https://aclanthology.org/2026.acl-long.1502/" target="_blank" rel="noopener noreferrer">Anthology</a>
+                <a href="https://aclanthology.org/2026.acl-long.1502.pdf" target="_blank" rel="noopener noreferrer">PDF</a>
+              </div>
+            </div>
+          </li>
+
+          <li class="pub">
+            <span class="pub-year">2026</span>
+            <div class="pub-body">
+              <div class="pub-title">Neo-Classic: A Benchmark for Evaluating Linguistic-Aesthetic Reasoning in Classical Chinese Poetry</div>
+              <div class="pub-authors">Han Zhang, Zihan Gu, Zhiyuan Wang, <strong>Tianyi Ma</strong>, Jiacheng Lu, Xinyan Zhang, Yuhao Wei, Cheng Hua</div>
+              <div class="pub-venue">ACL 2026 (Long Papers) · pp. 27442&ndash;27465</div>
+              <div class="pub-links">
+                <a href="https://aclanthology.org/2026.acl-long.1266/" target="_blank" rel="noopener noreferrer">Anthology</a>
+                <a href="https://aclanthology.org/2026.acl-long.1266.pdf" target="_blank" rel="noopener noreferrer">PDF</a>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section reveal" id="preprints">
+        <h2 class="section-label">
+          <span class="en">arXiv Preprints</span><span class="cn">arXiv 预印本</span>
+        </h2>
+        <ol class="pubs">
+          <li class="pub">
+            <span class="pub-year">2025</span>
+            <div class="pub-body">
+              <div class="pub-title">Design of a Decentralized Fixed-Income Lending Automated Market Maker Protocol Supporting Arbitrary Maturities</div>
+              <div class="pub-authors"><strong>Tianyi Ma</strong></div>
+              <div class="pub-venue">arXiv:2512.16080</div>
+              <div class="pub-links">
+                <a href="https://arxiv.org/abs/2512.16080" target="_blank" rel="noopener noreferrer">arXiv</a>
+                <a href="https://arxiv.org/pdf/2512.16080" target="_blank" rel="noopener noreferrer">PDF</a>
+              </div>
+            </div>
+          </li>
+        </ol>
+      </section>
+
+      <section class="section reveal" id="contact">
+        <h2 class="section-label">
+          <span class="en">Contact</span><span class="cn">联系方式</span>
+        </h2>
+        <ul class="contact-links">
+          <li>
+            <span class="label">Email</span>
+            <!-- Email obfuscated to deter scrapers; the real address is assembled by main.js -->
+            <a class="email-link" id="email-link" href="#" data-user="harryma-shs" data-domain="sjtu.edu.cn">harryma-shs [at] sjtu [dot] edu [dot] cn</a>
+          </li>
+          <li>
+            <span class="label">Scholar</span>
+            <a href="https://scholar.google.com/citations?user=HtXpYtcAAAAJ" target="_blank" rel="noopener noreferrer">Google Scholar</a>
+          </li>
+          <li>
+            <span class="label">GitHub</span>
+            <a href="https://github.com/HarryTMa" target="_blank" rel="noopener noreferrer">GitHub</a>
+          </li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <span class="en">© 2026 Tianyi Ma · Shanghai · <a href="archive.html">archive</a></span>
+      <span class="cn">© 2026 马添翼 · 上海 · <a href="archive.html">旧项目</a></span>
+    </footer>
+  </div>
+
+  <script src="main.js" defer></script>
+</body>
+</html>

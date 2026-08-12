@@ -1,4 +1,6 @@
-[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg?style=flat-square)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
-# HarryTMa.github.io
-My default website😀
-Nothing more~
+# Tianyi Ma (马添翼)
+
+Academic homepage of **Tianyi Ma** — Master of Finance (FinTech & Quantitative Investment) at Shanghai Jiao Tong University.
+
+- 🌐 [harrytma.github.io](https://harrytma.github.io)
+- 📚 [Google Scholar](https://scholar.google.com/citations?user=HtXpYtcAAAAJ)

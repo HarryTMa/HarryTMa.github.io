@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archive · Tianyi Ma</title>
+  <meta name="color-scheme" content="light dark">
+
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('theme');
+        if (!t) {
+          t = (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+
+  <link rel="icon" href="assets/avatar.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <main>
+      <h1 class="hero-name" style="font-size:1.5rem; margin-bottom:6px;">Archive</h1>
+      <p class="hero-tagline" style="margin-bottom:28px;">Some old side projects · 一些旧项目</p>
+
+      <section class="section">
+        <ul class="contact-links">
+          <li><span class="label">Game</span><a href="RapidRoll/">Rapid Roll</a></li>
+          <li><span class="label">Game</span><a href="daxigua.html">合成小西瓜</a></li>
+          <li><span class="label">Game</span><a href="cnp.html">吹牛皮</a></li>
+          <li><span class="label">Art</span><a href="painting.html">Painting</a></li>
+          <li><span class="label">Art</span><a href="walkers/">走路的人</a></li>
+        </ul>
+      </section>
+
+      <p style="margin-top:24px;"><a href="index.html">&larr; Back</a></p>
+    </main>
+  </div>
+</body>
+</html>
